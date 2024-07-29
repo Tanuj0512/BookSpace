@@ -1,102 +1,118 @@
 import React, { useEffect, useState } from "react";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import Slider from "react-slick";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Freebook() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userBooks, setUserBooks] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const getUsers = async () => {
+    const fetchUsers = async () => {
       try {
-        const res = await axios.get("/users-with-books");
-        console.log("Fetched users:", res.data); // Check the data structure
-        setUsers(Array.isArray(res.data) ? res.data : []);
+        const response = await axios.get("http://localhost:4000/api/users", {
+          withCredentials: true,
+        });
+        const fetchedUsers = response.data.map((user) => ({
+          id: user.id,
+          fullname: user.fullname,
+          email: user.email,
+          picture: `https://api.multiavatar.com/Binx Bond.svg/${user.fullname}.svg`,
+        }));
+        setUsers(fetchedUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
-        setUsers([]);
       }
     };
-    getUsers();
+    fetchUsers();
   }, []);
 
   const fetchUserBooks = async (userId) => {
     try {
-      const res = await axios.get(`http://localhost:4000/api/users/${userId}/books`);
-      setUserBooks(res.data);
+      const response = await axios.get(
+        `http://localhost:4000/api/books/user/${userId}`,
+        { withCredentials: true }
+      );
+      setUserBooks(response.data);
+      setSelectedUser(users.find((user) => user.id === userId));
     } catch (error) {
-      console.log("Error fetching user books:", error);
+      console.error("Error fetching user books:", error);
       setUserBooks([]);
     }
   };
 
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
-    fetchUserBooks(user.id);
+  const handleUserClick = (userId) => {
+    fetchUserBooks(userId);
   };
 
-  const settings = {
-    dots: true,
-    infinite: false,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 3,
-    initialSlide: 0,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 3,
-          infinite: true,
-          dots: true,
-        },
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 2,
-          initialSlide: 2,
-        },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        },
-      },
-    ],
+  const handleBuyClick = (book) => {
+    navigate("/checkout", { state: { book } });
   };
 
   return (
-    <div className="max-w-screen-2xl container mx-auto md:px-20 px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center text-pink-800">Users with Books</h1>
-      <Slider {...settings}>
-        {Array.isArray(users) && users.map((user) => (
-          <div key={user.id} onClick={() => handleUserClick(user)} className="cursor-pointer hover:bg-gray-200 p-4 rounded">
-            <h3 className="text-center">{user.fullname}</h3>
+    <div className="max-w-screen-2xl container mx-auto md:px-20 px-4 py-8 dark:bg-slate-800 dark:text-white">
+      <h1 className="text-3xl font-bold mb-6 text-left ml-4 text-pink-800 dark:text-pink-400">
+      Authors
+      </h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+        {users.map((user) => (
+          <div
+            key={user.id}
+            onClick={() => handleUserClick(user.id)}
+            className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 p-4 rounded-lg shadow-md text-center transition duration-300 ease-in-out transform hover:scale-105"
+          >
+            <img
+              src={user.picture}
+              alt={`${user.fullname}'s avatar`}
+              className="w-16 h-16 rounded-full mx-auto mb-2"
+            />
+            <h3 className="text-lg font-semibold">{user.fullname}</h3>
           </div>
         ))}
-      </Slider>
+      </div>
+
       {selectedUser && (
         <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4 text-center text-pink-800">
+          <h2 className="text-2xl font-bold mb-4 text-left text-pink-800 dark:text-pink-400">
             Books by {selectedUser.fullname}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userBooks.length > 0 ? userBooks.map((book) => (
-              <div key={book.id} className="p-4 border rounded shadow-md">
-                <h3 className="text-lg font-semibold">{book.title}</h3>
-                <p className="text-sm text-gray-600">Author: {book.author}</p>
-                <p className="mt-2">{book.description}</p>
-              </div>
-            )) : (
-              <p className="text-center text-gray-600">No books available for this user.</p>
+            {userBooks.length > 0 ? (
+              userBooks.map((book) => (
+                <div
+                  key={book.id}
+                  className="p-4 border rounded-lg shadow-md dark:border-slate-700 bg-white dark:bg-slate-900"
+                >
+                  <img
+                    src={`http://localhost:4000/uploads/${book.image}`}
+                    alt={book.title}
+                    className="w-full h-48 object-cover mb-4 rounded-t-lg"
+                  />
+                  <div className="p-4">
+                    <h1 className="text-2xl  font-bold mb-2">{book.title}</h1>
+                    <p className="text-gray-700 dark:text-gray-300 mb-1 ">
+                      Name: {book.name}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 mb-1">
+                      Price: ${book.price}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 mb-1">
+                      Category: {book.category}
+                    </p>
+                    <button
+                      onClick={() => handleBuyClick(book)}
+                      className="w-full bg-green-500 text-white p-3 rounded-lg font-semibold hover:bg-green-600 transition duration-300 mt-4"
+                    >
+                      Buy
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-600 dark:text-gray-300">
+                No books available for this user.
+              </p>
             )}
           </div>
         </div>

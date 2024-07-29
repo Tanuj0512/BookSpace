@@ -10,7 +10,10 @@ import cookieParser from "cookie-parser";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173", 
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 app.use(cookieParser());
@@ -29,7 +32,7 @@ sequelize
   .catch((error) => console.error("Error syncing models:", error));
 
 // Define routes
-app.use("/book", bookRoute);
+app.use("/api", bookRoute);
 app.use("/user", userRoute);
 
 app.listen(PORT, () => {

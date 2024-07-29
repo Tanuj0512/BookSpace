@@ -23,9 +23,18 @@ const Book = sequelize.define('Book', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  userId: { // Ensure this field exists
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id',
+    },
+  }
 });
 
-// Book.belongsTo(User, { foreignKey: 'userId' });
-// User.hasMany(Book, { foreignKey: 'userId' });
+// Define relationships
+Book.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Book, { foreignKey: 'userId' });
 
 export default Book;
