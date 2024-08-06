@@ -3,24 +3,20 @@ import { useAuth } from "../context/AuthProvider";
 import toast from "react-hot-toast";
 
 function Logout() {
-  const [authUser, setAuthUser] = useAuth();
-  const handleLogout = () => {
-    try {
-      setAuthUser({
-        ...authUser,
-        user: null,
-      });
-      localStorage.removeItem("Users");
-      toast.success("Logout successfully");
+  const [, setAuthUser] = useAuth();
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
+  const handleLogout = async () => {
+    try {
+      await axios.post("http://localhost:4000/user/logout", {}, { withCredentials: true });
+      setAuthUser(null); // Clear the auth context
+      toast.success("Logged out successfully");
     } catch (error) {
-      toast.error("Error: " + error);
-      setTimeout(() => {}, 2000);
+      console.error("Logout Error:", error);
+      toast.error("Failed to log out");
     }
   };
+
+
   return (
     <div>
       <button

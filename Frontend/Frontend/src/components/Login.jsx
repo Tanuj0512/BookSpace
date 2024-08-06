@@ -3,39 +3,37 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthProvider";
 function Login() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  const [, setAuthUser] = useAuth();
 
   const onSubmit = async (data) => {
-    const userInfo = {
-      email: data.email,
-      password: data.password,
-    };
-    await axios
-      .post("http://localhost:4000/user/login", userInfo)
-      .then((res) => {
-        console.log(res.data);
-        if (res.data) {
-          toast.success("Loggedin Successfully");
-          document.getElementById("my_modal_3").close();
-          setTimeout(() => {
-            window.location.reload();
-            localStorage.setItem("Users", JSON.stringify(res.data.user));
-          }, 1000);
-        }
-      })
-      .catch((err) => {
-        if (err.response) {
-          console.log(err);
-          toast.error("Error: " + err.response.data.message);
-          setTimeout(() => {}, 2000);
-        }
-      });
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/user/login",
+        { email: data.email, password: data.password },
+        { withCredentials: true }
+      );
+      console.log(response.data); 
+      const { user } = response.data;
+
+      if (user) {
+        toast.success("Logged in Successfully");
+        setAuthUser(user); // Update auth context
+
+    
+      }
+    } catch (error) {
+      console.error("Login Error:", error); // Log error details
+      if (error.response) {
+        toast.error("Error: " + error.response.data.message);
+      } else {
+        toast.error("Error: " + error.message);
+      }
+    }
   };
+
   return (
     <div>
       <dialog id="my_modal_3" className="modal">

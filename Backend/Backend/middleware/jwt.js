@@ -3,7 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_hardcoded_jwt_secret_key_here';
+const JWT_SECRET = "key" 
+console.log(JWT_SECRET)
 
 export const verifyToken = (req, res, next) => {
   const accessToken = req.cookies['access-token'];
@@ -22,9 +23,10 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
+
 export const createTokens = (user) => {
   const accessToken = jwt.sign(
-    { username: user.username, id: user.id, isAdmin: user.isAdmin },
+    { id: user.id, username: user.email, isAdmin: user.isAdmin },
     JWT_SECRET,
     { expiresIn: '10h' }
   );

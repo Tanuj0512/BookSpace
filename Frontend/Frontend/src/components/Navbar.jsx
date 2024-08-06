@@ -9,20 +9,25 @@ function Navbar() {
   const [theme, setTheme] = useState(
     localStorage.getItem("theme") ? localStorage.getItem("theme") : "light"
   );
-  const element = document.documentElement;
+  const [sticky, setSticky] = useState(false);
+
   useEffect(() => {
-    if (theme === "dark") {
-      element.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      document.body.classList.add("dark");
-    } else {
-      element.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      document.body.classList.remove("dark");
-    }
+    const handleTheme = () => {
+      const element = document.documentElement;
+      if (theme === "dark") {
+        element.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+        document.body.classList.add("dark");
+      } else {
+        element.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+        document.body.classList.remove("dark");
+      }
+    };
+
+    handleTheme();
   }, [theme]);
 
-  const [sticky, setSticky] = useState(false);
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 0) {
@@ -31,11 +36,49 @@ function Navbar() {
         setSticky(false);
       }
     };
+
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  // Check auth status on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("http://localhost:4000/user/auth", {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setAuthUser(data.user);
+        } else {
+          setAuthUser(null);
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setAuthUser(null);
+      }
+    };
+
+    checkAuth();
+  }, [setAuthUser]);
+
+  // Handle user logout
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:4000/user/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      setAuthUser(null); // Clear auth context on logout
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   const navItems = (
     <>
       <li>

@@ -12,20 +12,22 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import Checkout from "./components/checkout";
 import Navbar from "./components/Navbar";
+import Logout from "./components/Logout";
 const stripePromise = loadStripe(
  " pk_test_51Pdr5sRpxdlTLV2Rn5CCowMQiMuYz66fzstAj9GPNrywGWanzSqqamx7pHIuFQAK9r82KA4sjSoRKtuIceQb4MS200i5PFQJjg"
 );
 
+
+
 function App() {
-  const [authUser, setAuthUser] = useAuth();
-  console.log(authUser);
+  const [authUser] = useAuth(); // No need to setAuthUser here
+
   return (
     <>
       <Elements stripe={stripePromise}>
         <div className="dark:bg-slate-900 dark:text-white">
-         
+          <Navbar />
           <Routes>
-         
             <Route path="/" element={<Home />} />
             <Route
               path="/course"
@@ -35,11 +37,11 @@ function App() {
               path="/market"
               element={authUser ? <MarketPlace /> : <Navigate to="/signup" />}
             />
-
             <Route path="/signup" element={<Signup />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/logout" element={<Logout />} /> {/* Add Logout Route */}
           </Routes>
           <Toaster />
         </div>
